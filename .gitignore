@@ -1,0 +1,5 @@
+node_modules/
+server/recipebox.sqlite
+server/*.sqlite
+.DS_Store
+npm-debug.log*

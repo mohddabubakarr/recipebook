@@ -1,0 +1,23 @@
+{
+  "name": "my-recipe-box",
+  "version": "1.0.0",
+  "description": "My Recipe Box - search public recipes and build your own private, ad-free recipe collection.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "test": "node --test server/tests"
+  },
+  "keywords": ["recipes", "express", "sqlite", "themealdb"],
+  "author": "Gotam Rai",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7",
+    "cors": "^2.8.5",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

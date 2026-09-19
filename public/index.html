@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Recipe Box</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <h1 class="logo">🍲 My Recipe Box</h1>
+      <nav class="tabs" aria-label="Main navigation">
+        <button class="tab-btn active" data-tab="search">Search</button>
+        <button class="tab-btn" data-tab="collection">My Recipes</button>
+        <button class="tab-btn" data-tab="add">Add Custom</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- SEARCH TAB -->
+    <section id="tab-search" class="tab-panel active">
+      <form id="search-form" class="search-form">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search by recipe name or ingredient..."
+          autocomplete="off"
+          required
+        />
+        <select id="search-by">
+          <option value="name">By name</option>
+          <option value="ingredient">By ingredient</option>
+        </select>
+        <button type="submit">Search</button>
+      </form>
+      <p id="search-status" class="status-text"></p>
+      <div id="search-results" class="recipe-grid"></div>
+    </section>
+
+    <!-- COLLECTION TAB -->
+    <section id="tab-collection" class="tab-panel">
+      <div class="panel-heading">
+        <h2>My Recipes</h2>
+        <p class="muted">Recipes you've saved from search, plus your own custom creations.</p>
+      </div>
+      <p id="collection-status" class="status-text"></p>
+      <div id="collection-results" class="recipe-grid"></div>
+    </section>
+
+    <!-- ADD CUSTOM TAB -->
+    <section id="tab-add" class="tab-panel">
+      <div class="panel-heading">
+        <h2>Add a Custom Recipe</h2>
+        <p class="muted">Store your own recipe alongside the ones you find.</p>
+      </div>
+      <form id="custom-form" class="custom-form">
+        <label for="custom-title">Title</label>
+        <input type="text" id="custom-title" required placeholder="e.g. Grandma's Lentil Soup" />
+
+        <div class="form-row">
+          <div>
+            <label for="custom-category">Category</label>
+            <input type="text" id="custom-category" placeholder="e.g. Soup" />
+          </div>
+          <div>
+            <label for="custom-area">Cuisine</label>
+            <input type="text" id="custom-area" placeholder="e.g. Indian" />
+          </div>
+        </div>
+
+        <label for="custom-image">Image URL (optional)</label>
+        <input type="url" id="custom-image" placeholder="https://..." />
+
+        <label for="custom-ingredients">Ingredients (one per line, e.g. "2 cups Lentils")</label>
+        <textarea id="custom-ingredients" rows="5" required placeholder="200g Red Lentils&#10;1 Onion, diced&#10;2 cloves Garlic"></textarea>
+
+        <label for="custom-instructions">Instructions</label>
+        <textarea id="custom-instructions" rows="6" required placeholder="Step-by-step instructions..."></textarea>
+
+        <button type="submit">Save Recipe</button>
+      </form>
+      <p id="custom-status" class="status-text"></p>
+    </section>
+  </main>
+
+  <div id="recipe-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close" aria-label="Close">&times;</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <p>My Recipe Box &mdash; Project Java and Web Development (DLBCSPJWD01) &mdash; Phase 2</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
