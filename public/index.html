@@ -9,13 +9,13 @@
 <body>
   <header class="app-header">
     <div class="header-inner">
-      <h1 class="logo">
+      <button type="button" id="logo-home" class="logo" aria-label="Go to home">
         <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 10h18M4 10l1 9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2l1-9" />
           <path d="M8 10V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4" />
         </svg>
         My Recipe Box
-      </h1>
+      </button>
       <nav class="tabs" aria-label="Main navigation">
         <button class="tab-btn active" data-tab="search">Search</button>
         <button class="tab-btn" data-tab="collection">My Recipes</button>
@@ -27,6 +27,18 @@
   <main class="container">
     <!-- SEARCH TAB -->
     <section id="tab-search" class="tab-panel active">
+      <div id="search-hero" class="hero">
+        <h2>What are you cooking today?</h2>
+        <p class="muted">Search thousands of public recipes, or try one of these:</p>
+        <div class="chip-row" id="quick-searches">
+          <button type="button" class="chip" data-q="Chicken">Chicken</button>
+          <button type="button" class="chip" data-q="Pasta">Pasta</button>
+          <button type="button" class="chip" data-q="Vegetarian">Vegetarian</button>
+          <button type="button" class="chip" data-q="Dessert">Dessert</button>
+          <button type="button" class="chip" data-q="Seafood">Seafood</button>
+          <button type="button" class="chip" data-q="Curry">Curry</button>
+        </div>
+      </div>
       <form id="search-form" class="search-form">
         <input
           type="text"

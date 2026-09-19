@@ -23,14 +23,20 @@ async function parseJSON(res) {
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
 
+function goToTab(name) {
+  tabButtons.forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
+  tabPanels.forEach((p) => p.classList.toggle('active', p.id === `tab-${name}`));
+  if (name === 'collection') loadCollection();
+}
+
 tabButtons.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    tabButtons.forEach((b) => b.classList.remove('active'));
-    tabPanels.forEach((p) => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-    if (btn.dataset.tab === 'collection') loadCollection();
-  });
+  btn.addEventListener('click', () => goToTab(btn.dataset.tab));
+});
+
+// ---- Logo / home ----
+document.getElementById('logo-home').addEventListener('click', () => {
+  goToTab('search');
+  resetSearch();
 });
 
 // ---- Search ----
@@ -39,17 +45,25 @@ const searchInput = document.getElementById('search-input');
 const searchBy = document.getElementById('search-by');
 const searchStatus = document.getElementById('search-status');
 const searchResults = document.getElementById('search-results');
+const searchHero = document.getElementById('search-hero');
 
-searchForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const q = searchInput.value.trim();
-  if (!q) return;
+function resetSearch() {
+  searchForm.reset();
+  searchResults.innerHTML = '';
+  searchStatus.textContent = '';
+  searchStatus.classList.remove('error');
+  searchHero.classList.remove('hidden');
+}
 
+async function runSearch(q, by) {
+  searchInput.value = q;
+  searchBy.value = by;
+  searchHero.classList.add('hidden');
   setStatus(searchStatus, 'Searching...', false);
   searchResults.innerHTML = '';
 
   try {
-    const { results } = await API.search(q, searchBy.value);
+    const { results } = await API.search(q, by);
     if (!results.length) {
       setStatus(searchStatus, `No recipes found for "${q}".`, false);
       return;
@@ -59,6 +73,19 @@ searchForm.addEventListener('submit', async (e) => {
   } catch (err) {
     setStatus(searchStatus, err.message, true);
   }
+}
+
+searchForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const q = searchInput.value.trim();
+  if (!q) return;
+  runSearch(q, searchBy.value);
+});
+
+document.getElementById('quick-searches').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  runSearch(chip.dataset.q, 'name');
 });
 
 // ---- Collection ----
@@ -225,46 +252,102 @@ async function openDetail(recipe, context) {
   }
 
   modalBody.innerHTML = '';
+
   if (full.image) {
+    const hero = document.createElement('div');
+    hero.className = 'modal-hero';
     const img = document.createElement('img');
     img.src = full.image;
     img.alt = full.title;
-    modalBody.appendChild(img);
+    hero.appendChild(img);
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-hero-overlay';
+    const h2 = document.createElement('h2');
+    h2.textContent = full.title;
+    overlay.appendChild(h2);
+    hero.appendChild(overlay);
+    modalBody.appendChild(hero);
+  } else {
+    const h2 = document.createElement('h2');
+    h2.textContent = full.title;
+    modalBody.appendChild(h2);
   }
 
-  const h2 = document.createElement('h2');
-  h2.textContent = full.title;
-  modalBody.appendChild(h2);
-
   const tags = document.createElement('div');
-  tags.className = 'recipe-tags';
+  tags.className = 'recipe-tags modal-tags';
   if (full.category) tags.appendChild(makeTag(full.category));
   if (full.area) tags.appendChild(makeTag(full.area));
+  const ingCount = (full.ingredients || []).length;
+  if (ingCount) tags.appendChild(makeTag(`${ingCount} ingredients`));
   modalBody.appendChild(tags);
 
+  const grid = document.createElement('div');
+  grid.className = 'modal-grid';
+
+  const ingColumn = document.createElement('div');
+  ingColumn.className = 'modal-column';
   const h4a = document.createElement('h4');
   h4a.textContent = 'Ingredients';
-  modalBody.appendChild(h4a);
-
+  ingColumn.appendChild(h4a);
   const ul = document.createElement('ul');
-  (full.ingredients || []).forEach((ing) => {
+  ul.className = 'ingredient-list';
+  (full.ingredients || []).forEach((ing, i) => {
     const li = document.createElement('li');
-    li.textContent = [ing.measure, ing.ingredient].filter(Boolean).join(' ');
+    li.className = 'ingredient-item';
+    const id = `ing-${i}`;
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = id;
+    const label = document.createElement('label');
+    label.htmlFor = id;
+    label.textContent = [ing.measure, ing.ingredient].filter(Boolean).join(' ');
+    checkbox.addEventListener('change', () => li.classList.toggle('checked', checkbox.checked));
+    li.appendChild(checkbox);
+    li.appendChild(label);
     ul.appendChild(li);
   });
-  modalBody.appendChild(ul);
+  ingColumn.appendChild(ul);
+  grid.appendChild(ingColumn);
 
+  const stepColumn = document.createElement('div');
+  stepColumn.className = 'modal-column';
   const h4b = document.createElement('h4');
   h4b.textContent = 'Instructions';
-  modalBody.appendChild(h4b);
+  stepColumn.appendChild(h4b);
+  const steps = splitInstructions(full.instructions);
+  if (steps.length) {
+    const ol = document.createElement('ol');
+    ol.className = 'step-list';
+    steps.forEach((step) => {
+      const li = document.createElement('li');
+      li.textContent = step;
+      li.addEventListener('click', () => li.classList.toggle('done'));
+      ol.appendChild(li);
+    });
+    stepColumn.appendChild(ol);
+  } else {
+    const p = document.createElement('p');
+    p.className = 'muted';
+    p.textContent = 'No instructions provided.';
+    stepColumn.appendChild(p);
+  }
+  grid.appendChild(stepColumn);
 
-  const p = document.createElement('p');
-  p.className = 'instructions';
-  p.textContent = full.instructions || 'No instructions provided.';
-  modalBody.appendChild(p);
+  modalBody.appendChild(grid);
 
   modal.classList.remove('hidden');
   modal.setAttribute('aria-hidden', 'false');
+  modalBody.scrollTop = 0;
+}
+
+function splitInstructions(text) {
+  if (!text) return [];
+  const numbered = text.split(/\r?\n+/).map((s) => s.trim()).filter(Boolean);
+  if (numbered.length > 1) return numbered.map((s) => s.replace(/^(step\s*)?\d+[.)]\s*/i, ''));
+  return text
+    .split(/(?<=[.!?])\s+(?=[A-Z])/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 modalClose.addEventListener('click', closeModal);
