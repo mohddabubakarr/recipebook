@@ -55,6 +55,10 @@
       </form>
       <p id="search-status" class="status-text"></p>
       <div id="search-results" class="recipe-grid"></div>
+      <div id="featured-section">
+        <h3 class="section-subtitle">Featured Recipes</h3>
+        <div id="featured-results" class="recipe-grid"></div>
+      </div>
     </section>
 
     <!-- COLLECTION TAB -->
@@ -73,32 +77,54 @@
         <h2>Add a Custom Recipe</h2>
         <p class="muted">Store your own recipe alongside the ones you find.</p>
       </div>
-      <form id="custom-form" class="custom-form">
-        <label for="custom-title">Title</label>
-        <input type="text" id="custom-title" required placeholder="e.g. Grandma's Lentil Soup" />
+      <div class="add-layout">
+        <form id="custom-form" class="custom-form">
+          <div class="form-section">
+            <div class="form-section-title"><span class="step-num">1</span>Basics</div>
+            <label for="custom-title">Title</label>
+            <input type="text" id="custom-title" required placeholder="e.g. Grandma's Lentil Soup" />
 
-        <div class="form-row">
-          <div>
-            <label for="custom-category">Category</label>
-            <input type="text" id="custom-category" placeholder="e.g. Soup" />
+            <div class="form-row">
+              <div>
+                <label for="custom-category">Category</label>
+                <input type="text" id="custom-category" placeholder="e.g. Soup" />
+              </div>
+              <div>
+                <label for="custom-area">Cuisine</label>
+                <input type="text" id="custom-area" placeholder="e.g. Indian" />
+              </div>
+            </div>
+
+            <label for="custom-image">Image URL (optional)</label>
+            <input type="url" id="custom-image" placeholder="https://..." />
           </div>
-          <div>
-            <label for="custom-area">Cuisine</label>
-            <input type="text" id="custom-area" placeholder="e.g. Indian" />
+
+          <div class="form-section">
+            <div class="form-section-title"><span class="step-num">2</span>Ingredients</div>
+            <div id="ingredient-rows" class="ingredient-rows"></div>
+            <button type="button" id="add-ingredient-row" class="secondary add-row-btn">+ Add ingredient</button>
           </div>
-        </div>
 
-        <label for="custom-image">Image URL (optional)</label>
-        <input type="url" id="custom-image" placeholder="https://..." />
+          <div class="form-section">
+            <div class="form-section-title"><span class="step-num">3</span>Instructions</div>
+            <label for="custom-instructions">One step per line works best</label>
+            <textarea id="custom-instructions" rows="6" required placeholder="Step-by-step instructions..."></textarea>
+            <p class="char-count"><span id="instructions-count">0</span> characters</p>
+          </div>
 
-        <label for="custom-ingredients">Ingredients (one per line, e.g. "2 cups Lentils")</label>
-        <textarea id="custom-ingredients" rows="5" required placeholder="200g Red Lentils&#10;1 Onion, diced&#10;2 cloves Garlic"></textarea>
+          <button type="submit">Save Recipe</button>
+        </form>
 
-        <label for="custom-instructions">Instructions</label>
-        <textarea id="custom-instructions" rows="6" required placeholder="Step-by-step instructions..."></textarea>
-
-        <button type="submit">Save Recipe</button>
-      </form>
+        <aside class="preview-card" id="preview-card">
+          <span class="preview-label">Live Preview</span>
+          <div class="preview-image" id="preview-image">
+            <span id="preview-image-placeholder">No image yet</span>
+          </div>
+          <h3 id="preview-title">Your recipe title</h3>
+          <div class="recipe-tags" id="preview-tags"></div>
+          <p class="preview-meta" id="preview-ingredient-count">0 ingredients</p>
+        </aside>
+      </div>
       <p id="custom-status" class="status-text"></p>
     </section>
   </main>

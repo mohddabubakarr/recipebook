@@ -22,6 +22,18 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// GET /api/mealdb/featured?count=8 - a handful of random recipes for the home page
+router.get('/featured', async (req, res) => {
+  const count = Math.min(Math.max(parseInt(req.query.count, 10) || 8, 1), 12);
+  try {
+    const results = await mealdb.getFeatured(count);
+    res.json({ results });
+  } catch (err) {
+    console.error('TheMealDB featured fetch failed:', err.message);
+    res.status(502).json({ error: 'Could not reach the recipe database. Please try again.' });
+  }
+});
+
 // GET /api/mealdb/:id - full detail for a single external recipe
 router.get('/:id', async (req, res) => {
   try {

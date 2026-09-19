@@ -1,5 +1,6 @@
 const API = {
   search: (q, by) => fetch(`/api/mealdb/search?q=${encodeURIComponent(q)}&by=${by}`).then(parseJSON),
+  featured: (count = 8) => fetch(`/api/mealdb/featured?count=${count}`).then(parseJSON),
   detail: (id) => fetch(`/api/mealdb/${id}`).then(parseJSON),
   collection: () => fetch('/api/recipes').then(parseJSON),
   save: (payload) =>
@@ -46,6 +47,8 @@ const searchBy = document.getElementById('search-by');
 const searchStatus = document.getElementById('search-status');
 const searchResults = document.getElementById('search-results');
 const searchHero = document.getElementById('search-hero');
+const featuredSection = document.getElementById('featured-section');
+const featuredResults = document.getElementById('featured-results');
 
 function resetSearch() {
   searchForm.reset();
@@ -53,12 +56,26 @@ function resetSearch() {
   searchStatus.textContent = '';
   searchStatus.classList.remove('error');
   searchHero.classList.remove('hidden');
+  featuredSection.classList.remove('hidden');
+  if (!featuredResults.children.length) loadFeatured();
+}
+
+async function loadFeatured() {
+  featuredResults.innerHTML = '<p class="status-text">Loading featured recipes...</p>';
+  try {
+    const { results } = await API.featured(8);
+    featuredResults.innerHTML = '';
+    featuredResults.append(...results.map((r) => renderCard(r, 'search')));
+  } catch (err) {
+    featuredResults.innerHTML = `<p class="status-text error">${err.message}</p>`;
+  }
 }
 
 async function runSearch(q, by) {
   searchInput.value = q;
   searchBy.value = by;
   searchHero.classList.add('hidden');
+  featuredSection.classList.add('hidden');
   setStatus(searchStatus, 'Searching...', false);
   searchResults.innerHTML = '';
 
@@ -74,6 +91,8 @@ async function runSearch(q, by) {
     setStatus(searchStatus, err.message, true);
   }
 }
+
+loadFeatured();
 
 searchForm.addEventListener('submit', (e) => {
   e.preventDefault();
@@ -111,27 +130,136 @@ async function loadCollection() {
 // ---- Custom recipe form ----
 const customForm = document.getElementById('custom-form');
 const customStatus = document.getElementById('custom-status');
+const customTitle = document.getElementById('custom-title');
+const customCategory = document.getElementById('custom-category');
+const customArea = document.getElementById('custom-area');
+const customImage = document.getElementById('custom-image');
+const customInstructions = document.getElementById('custom-instructions');
+const instructionsCount = document.getElementById('instructions-count');
+const ingredientRows = document.getElementById('ingredient-rows');
+
+// ---- Dynamic ingredient rows ----
+function addIngredientRow(measure = '', ingredient = '') {
+  const row = document.createElement('div');
+  row.className = 'ingredient-row';
+
+  const measureInput = document.createElement('input');
+  measureInput.type = 'text';
+  measureInput.className = 'ing-measure';
+  measureInput.placeholder = 'Amount (e.g. 200g)';
+  measureInput.value = measure;
+  measureInput.addEventListener('input', updatePreview);
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'ing-name';
+  nameInput.placeholder = 'Ingredient (e.g. Red Lentils)';
+  nameInput.value = ingredient;
+  nameInput.addEventListener('input', updatePreview);
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'ing-remove';
+  removeBtn.setAttribute('aria-label', 'Remove ingredient');
+  removeBtn.textContent = '×';
+  removeBtn.addEventListener('click', () => {
+    row.remove();
+    updatePreview();
+  });
+
+  row.appendChild(measureInput);
+  row.appendChild(nameInput);
+  row.appendChild(removeBtn);
+  ingredientRows.appendChild(row);
+  return row;
+}
+
+document.getElementById('add-ingredient-row').addEventListener('click', () => {
+  const row = addIngredientRow();
+  row.querySelector('.ing-measure').focus();
+});
+
+function getIngredients() {
+  return Array.from(ingredientRows.querySelectorAll('.ingredient-row'))
+    .map((row) => ({
+      measure: row.querySelector('.ing-measure').value.trim(),
+      ingredient: row.querySelector('.ing-name').value.trim(),
+    }))
+    .filter((i) => i.ingredient);
+}
+
+function resetCustomForm() {
+  customForm.reset();
+  ingredientRows.innerHTML = '';
+  addIngredientRow();
+  addIngredientRow();
+  addIngredientRow();
+  updatePreview();
+}
+
+// ---- Live preview ----
+const previewImage = document.getElementById('preview-image');
+const previewTitle = document.getElementById('preview-title');
+const previewTags = document.getElementById('preview-tags');
+const previewIngCount = document.getElementById('preview-ingredient-count');
+
+function updatePreview() {
+  previewTitle.textContent = customTitle.value.trim() || 'Your recipe title';
+
+  previewImage.innerHTML = '';
+  const url = customImage.value.trim();
+  if (url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = 'Preview';
+    img.onerror = () => {
+      previewImage.innerHTML = '<span>Image failed to load</span>';
+    };
+    previewImage.appendChild(img);
+  } else {
+    const span = document.createElement('span');
+    span.textContent = 'No image yet';
+    previewImage.appendChild(span);
+  }
+
+  previewTags.innerHTML = '';
+  const category = customCategory.value.trim();
+  const area = customArea.value.trim();
+  if (category) previewTags.appendChild(makeTag(category));
+  if (area) previewTags.appendChild(makeTag(area));
+
+  const count = getIngredients().length;
+  previewIngCount.textContent = `${count} ingredient${count === 1 ? '' : 's'}`;
+
+  instructionsCount.textContent = customInstructions.value.length;
+}
+
+[customTitle, customCategory, customArea, customImage].forEach((el) =>
+  el.addEventListener('input', updatePreview)
+);
+customInstructions.addEventListener('input', updatePreview);
+
+resetCustomForm();
 
 customForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const title = document.getElementById('custom-title').value.trim();
-  const category = document.getElementById('custom-category').value.trim();
-  const area = document.getElementById('custom-area').value.trim();
-  const image = document.getElementById('custom-image').value.trim();
-  const ingredientsRaw = document.getElementById('custom-ingredients').value;
-  const instructions = document.getElementById('custom-instructions').value.trim();
+  const title = customTitle.value.trim();
+  const category = customCategory.value.trim();
+  const area = customArea.value.trim();
+  const image = customImage.value.trim();
+  const ingredients = getIngredients();
+  const instructions = customInstructions.value.trim();
 
-  const ingredients = ingredientsRaw
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => ({ ingredient: line, measure: '' }));
+  if (!ingredients.length) {
+    setStatus(customStatus, 'Add at least one ingredient.', true);
+    return;
+  }
 
   try {
     await API.save({ source: 'custom', title, category, area, image, ingredients, instructions });
     setStatus(customStatus, `"${title}" saved to My Recipes!`, false);
-    customForm.reset();
+    resetCustomForm();
   } catch (err) {
     setStatus(customStatus, err.message, true);
   }

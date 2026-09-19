@@ -50,4 +50,24 @@ async function lookupById(id) {
   return simplifyMeal(meal);
 }
 
-module.exports = { searchByName, filterByIngredient, lookupById };
+async function randomMeal() {
+  const res = await fetch(`${BASE_URL}/random.php`);
+  const data = await res.json();
+  return simplifyMeal((data.meals || [])[0]);
+}
+
+async function getFeatured(count = 8) {
+  const seen = new Set();
+  const results = [];
+  // random.php returns one (possibly repeated) meal per call - dedupe and cap attempts.
+  for (let attempts = 0; results.length < count && attempts < count * 3; attempts += 1) {
+    const meal = await randomMeal();
+    if (meal && !seen.has(meal.externalId)) {
+      seen.add(meal.externalId);
+      results.push(meal);
+    }
+  }
+  return results;
+}
+
+module.exports = { searchByName, filterByIngredient, lookupById, getFeatured };
